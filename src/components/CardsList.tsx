@@ -1,5 +1,14 @@
-import { View, StyleSheet, Image } from 'react-native';
+import { View, StyleSheet, Image, useWindowDimensions } from 'react-native';
 import { GestureDetector, Gesture } from 'react-native-gesture-handler';
+import Animated, {
+  cancelAnimation,
+  useSharedValue,
+  withDecay,
+  clamp,
+  withClamp,
+} from 'react-native-reanimated';
+import Card from './Card';
+import { useState } from 'react';
 
 const cards = [
   require('../../assets/cards/Card 1.png'),
@@ -14,22 +23,37 @@ const cards = [
 ];
 
 const CardsList = () => {
+  const [listHeight, setListHeight] = useState(0);
+  const { height: screenHeight } = useWindowDimensions();
+  const maxScrollY = listHeight - screenHeight + 70;
+  const scrollY = useSharedValue(0);
+
   const pan = Gesture.Pan()
+    .onBegin(() => {
+      cancelAnimation(scrollY);
+    })
     .onStart(() => {
       console.log('Panning started');
     })
     .onChange((event) => {
-      console.log('Panning. Scrolled on Y:', event.changeY);
+      scrollY.value = clamp(scrollY.value - event.changeY, 0, maxScrollY);
+      console.log('Scroll: ', scrollY.value);
     })
-    .onEnd(() => {
-      console.log('Panning ended');
+    .onEnd((event) => {
+      scrollY.value = withClamp(
+        { min: 0, max: maxScrollY },
+        withDecay({ velocity: -event.velocityY })
+      );
     });
 
   return (
     <GestureDetector gesture={pan}>
-      <View style={styles.container}>
+      <View
+        style={styles.container}
+        onLayout={(event) => setListHeight(event.nativeEvent.layout.height)}
+      >
         {cards.map((card, index) => (
-          <Image key={index} source={card} style={styles.image} />
+          <Card key={index} card={card} index={index} scrollY={scrollY} />
         ))}
       </View>
     </GestureDetector>
@@ -40,11 +64,5 @@ export default CardsList;
 const styles = StyleSheet.create({
   container: {
     padding: 10,
-  },
-  image: {
-    width: '100%',
-    height: undefined,
-    aspectRatio: 7 / 4,
-    marginVertical: 5,
   },
 });
