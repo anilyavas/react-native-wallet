@@ -1,4 +1,4 @@
-import { View, Text, StyleSheet, Image, FlatList } from 'react-native';
+import { View, StyleSheet, Image } from 'react-native';
 
 const cards = [
   require('../../assets/cards/Card 1.png'),
