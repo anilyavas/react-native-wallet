@@ -3,7 +3,6 @@ import { StyleSheet, useWindowDimensions } from 'react-native';
 import Animated, {
   clamp,
   useAnimatedReaction,
-  useDerivedValue,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
